@@ -1,4 +1,7 @@
 import React, { useContext, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+
+import { useHttpClient } from '../../shared/hooks/http-hook';
 
 import Card from '../../shared/components/UIElements/Card';
 import Button from '../../shared/components/FormElements/Button';
@@ -6,8 +9,12 @@ import Modal from '../../shared/components/UIElements/Modal';
 import Map from '../../shared/components/UIElements/Map';
 import './PlaceItem.css';
 import { AuthContext } from '../../shared/context/auth-context';
+import ErrorModal from '../../shared/components/UIElements/ErrorModal';
+import LoadingSpinner from '../../shared/components/UIElements/LoadingSpinner';
 
 const PlaceItem = (props) => {
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const history = useHistory();
   const [showMap, setShowMap] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const auth = useContext(AuthContext);
@@ -20,13 +27,23 @@ const PlaceItem = (props) => {
     setShowConfirmModal(!showConfirmModal);
   };
 
-  const confirmDeleteHandler = () => {
-    console.log('Deleting place...');
-    setShowConfirmModal(false);
+  const confirmDeleteHandler = async () => {
+    try {
+      setShowConfirmModal(false);
+      await sendRequest(
+        `http://localhost:3000/api/places/${props.id}`,
+        'DELETE'
+      );
+      history.push('/');
+      props.onDelete(props.id);
+    } catch (error) {
+      // This is handled by the http-client hook.
+    }
   };
 
   return (
     <>
+      <ErrorModal error={error} onClear={clearError} />
       <Modal
         show={showMap}
         onCancel={toggleShowMap}
@@ -59,6 +76,11 @@ const PlaceItem = (props) => {
       </Modal>
       <li className='place-item'>
         <Card className='place-item__content'>
+          {isLoading && (
+            <div className='center'>
+              <LoadingSpinner asOverlay />
+            </div>
+          )}
           <div className='place-item__image'>
             <img src={props.image} alt={props.title} />
           </div>
@@ -71,7 +93,7 @@ const PlaceItem = (props) => {
             <Button inverse onClick={toggleShowMap}>
               View
             </Button>
-            {auth.isLoggedIn && (
+            {auth.userId === props.creatorId && (
               <>
                 <Button to={`/places/${props.id}`}>Edit</Button>
                 <Button danger onClick={toggleShowConfirmModal}>
