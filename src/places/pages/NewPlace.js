@@ -53,7 +53,9 @@ const NewPlace = () => {
       formData.append('image', formState.inputs.image.value);
       formData.append('creator', auth.userId);
 
-      await sendRequest('http://localhost:3000/api/places', 'POST', formData);
+      await sendRequest('http://localhost:3000/api/places', 'POST', formData, {
+        Authorization: 'Bearer ' + auth.token,
+      });
       history.push('/');
     } catch (error) {
       // This is handled by the http-client hook.
