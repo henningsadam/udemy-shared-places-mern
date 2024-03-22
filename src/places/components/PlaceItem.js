@@ -31,7 +31,7 @@ const PlaceItem = (props) => {
     try {
       setShowConfirmModal(false);
       await sendRequest(
-        `http://localhost:3000/api/places/${props.id}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/places/${props.id}`,
         'DELETE',
         null,
         {
@@ -87,7 +87,7 @@ const PlaceItem = (props) => {
           )}
           <div className='place-item__image'>
             <img
-              src={`http://localhost:3000/${props.image}`}
+              src={`${process.env.REACT_APP_BACKEND_URL}/${props.image}`}
               alt={props.title}
             />
           </div>
